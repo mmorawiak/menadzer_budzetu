@@ -7,12 +7,13 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
 import csv
+import os
 
 # Tworzymy aplikację Flask
 app = Flask(__name__)
 
 # Konfiguracja aplikacji
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///budget_manager.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(app.instance_path, 'budget_manager.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'supersecretkey'
 
@@ -22,6 +23,10 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+# Tworzenie folderu instance, jeśli nie istnieje
+if not os.path.exists(app.instance_path):
+    os.makedirs(app.instance_path)
 
 # Definicja tabeli User w bazie danych
 class User(UserMixin, db.Model):
@@ -204,5 +209,5 @@ def logout():
 # Tworzenie bazy danych przy pierwszym uruchomieniu
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        db.create_all()  # Tworzy tabele w bazie danych
     app.run(debug=True)
