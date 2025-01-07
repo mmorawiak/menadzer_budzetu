@@ -10,7 +10,7 @@
 <body>
     <div class="container mt-5">
         <h2>Edytuj Transakcję</h2>
-        <form method="POST">
+        <form method="POST" id="edit-transaction-form">
             {{ form.hidden_tag() }}
             <div class="mb-3">
                 {{ form.title.label(class="form-label") }}
@@ -30,5 +30,23 @@
         </form>
         <a href="/" class="btn btn-secondary mt-3">Powrót</a>
     </div>
+    <script>
+        document.getElementById("edit-transaction-form").addEventListener("submit", function(event) {
+            const title = document.getElementById("edit-transaction-form").querySelector('[name="title"]').value.trim();
+            const amount = parseFloat(document.getElementById("edit-transaction-form").querySelector('[name="amount"]').value);
+
+            if (!title || title.length === 0) {
+                alert("Tytuł transakcji jest wymagany!");
+                event.preventDefault();
+                return;
+            }
+
+            if (isNaN(amount) || amount <= 0) {
+                alert("Kwota musi być liczbą większą od zera!");
+                event.preventDefault();
+                return;
+            }
+        });
+    </script>
 </body>
 </html>

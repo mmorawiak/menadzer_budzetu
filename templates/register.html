@@ -10,7 +10,7 @@
 <body>
     <div class="container mt-5">
         <h2>Rejestracja</h2>
-        <form method="POST">
+        <form method="POST" id="register-form">
             {{ form.hidden_tag() }}
             <div class="mb-3">
                 {{ form.username.label(class="form-label") }}
@@ -29,5 +29,16 @@
             </div>
         </form>
     </div>
+    <script>
+        document.getElementById("register-form").addEventListener("submit", function(event) {
+            const password = document.getElementById("register-form").querySelector('[name="password"]').value;
+            const confirmPassword = document.getElementById("register-form").querySelector('[name="confirm_password"]').value;
+
+            if (password !== confirmPassword) {
+                alert("Hasła muszą być takie same!");
+                event.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>

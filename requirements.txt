@@ -5,3 +5,4 @@ WTForms==3.0.1
 Flask-Bcrypt==1.0.1
 Flask-Login==0.6.2
 pytz==2022.7
+Flask-Paginate==0.8.1
