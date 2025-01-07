@@ -14,12 +14,10 @@
             <form method="POST" id="login-form">
                 {{ form.hidden_tag() }}
                 <div class="form-group">
-                    {{ form.username.label(class="form-label") }}
-                    {{ form.username(class="form-control") }}
+                    {{ form.username(class="form-control", placeholder="Login") }}
                 </div>
                 <div class="form-group">
-                    {{ form.password.label(class="form-label") }}
-                    {{ form.password(class="form-control") }}
+                    {{ form.password(class="form-control", placeholder="Hasło") }}
                 </div>
                 <div class="form-group">
                     {{ form.submit(class="btn btn-primary btn-block") }}

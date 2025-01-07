@@ -6,17 +6,10 @@
     <title>Strona główna</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script>
-        function toggleMenu() {
-            const navLinks = document.querySelector('.nav-links');
-            navLinks.classList.toggle('active');
-        }
-    </script>
 </head>
 <body>
     <nav class="navbar">
         <a href="/" class="nav-link">Menadżer Budżetu</a>
-        <div class="hamburger" onclick="toggleMenu()">&#9776;</div>
         <div class="nav-links">
             <a href="/" class="nav-item">Dashboard</a>
             <a href="/add" class="nav-item">Dodaj transakcję</a>

@@ -198,6 +198,10 @@ h2, h3 {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
+.form-group {
+    margin-bottom: 1rem;
+}
+
 .login-link {
     display: block;
     margin-top: 10px;
@@ -286,11 +290,20 @@ tr:hover {
         display: block;
         overflow-x: auto;
         white-space: nowrap;
+        width: 100%; 
     }
 
     th, td {
-        padding: 8px;
-        font-size: 14px;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    th:last-child, td:last-child {
+        min-width: 200px;
+    }
+
+    .btn {
+        white-space: nowrap; 
     }
 
     .navbar {
@@ -302,4 +315,5 @@ tr:hover {
         width: 100%;
         text-align: left;
     }
+
 }
