@@ -24,27 +24,29 @@
                 {{ form.type.label(class="form-label") }}
                 {{ form.type(class="form-control") }}
             </div>
+            <div class="mb-3" id="category-field" style="display: none;">
+                {{ form.category.label(class="form-label") }}
+                {{ form.category(class="form-control") }}
+            </div>
             <div class="mb-3">
                 {{ form.submit(class="btn btn-primary") }}
             </div>
         </form>
     </div>
+
     <script>
-        document.getElementById("add-transaction-form").addEventListener("submit", function(event) {
-            const title = document.getElementById("add-transaction-form").querySelector('[name="title"]').value.trim();
-            const amount = parseFloat(document.getElementById("add-transaction-form").querySelector('[name="amount"]').value);
+        document.addEventListener("DOMContentLoaded", function () {
+            const typeField = document.querySelector('[name="type"]');
+            const categoryField = document.getElementById("category-field");
 
-            if (!title || title.length === 0) {
-                alert("Tytuł transakcji jest wymagany!");
-                event.preventDefault();
-                return;
-            }
-
-            if (isNaN(amount) || amount <= 0) {
-                alert("Kwota musi być liczbą większą od zera!");
-                event.preventDefault();
-                return;
-            }
+            // Toggle category field visibility based on transaction type
+            typeField.addEventListener("change", function () {
+                if (typeField.value === "Expense") {
+                    categoryField.style.display = "block";
+                } else {
+                    categoryField.style.display = "none";
+                }
+            });
         });
     </script>
 </body>

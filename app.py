@@ -41,6 +41,7 @@ class Transaction(db.Model):
     title = db.Column(db.String(150), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     type = db.Column(db.String(50), nullable=False)  # "Income" lub "Expense"
+    category = db.Column(db.String(100), nullable=True)  # Kategoria wydatku
     date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
@@ -49,6 +50,13 @@ class TransactionForm(FlaskForm):
     title = StringField(validators=[InputRequired()], render_kw={"placeholder": "Tytuł"})
     amount = FloatField(validators=[InputRequired()], render_kw={"placeholder": "Kwota"})
     type = SelectField(choices=[("Income", "Dochód"), ("Expense", "Wydatek")], validators=[InputRequired()])
+    category = SelectField(choices=[
+        ("Food", "Jedzenie"),
+        ("Transport", "Transport"),
+        ("Housing", "Mieszkanie"),
+        ("Entertainment", "Rozrywka"),
+        ("Other", "Inne")
+    ], render_kw={"placeholder": "Kategoria"}, validators=[InputRequired()])
     submit = SubmitField("Zapisz")
 
 class FilterForm(FlaskForm):
@@ -81,18 +89,49 @@ def calculate_totals(transactions):
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
+    print("Widok home został uruchomiony.")  # Debugging: sprawdzenie, czy widok działa
+
+    # Formularz filtrowania
     form = FilterForm()
     page = request.args.get(get_page_parameter(), type=int, default=1)
-    transactions_query = Transaction.query.filter_by(user_id=current_user.id)
 
-    # Filtrowanie
+    # Zapytanie o transakcje dla aktualnego użytkownika
+    transactions_query = Transaction.query.filter_by(user_id=current_user.id)
+    print("Zapytanie transakcji utworzone.")  # Debugging
+
+    # Filtrowanie transakcji według typu
     if form.validate_on_submit() and form.type.data:
+        print(f"Filtrowanie według typu: {form.type.data}")  # Debugging
         transactions_query = transactions_query.filter_by(type=form.type.data)
 
+    # Paginacja i pobranie wszystkich transakcji
     transactions = transactions_query.order_by(Transaction.date.desc()).paginate(page=page, per_page=5, error_out=False)
     all_transactions = transactions_query.all()
-    total_income, total_expense, balance = calculate_totals(all_transactions)
 
+    print("Transakcje pobrane:", all_transactions)  # Debugging: wyświetlenie transakcji
+
+    # Obliczenie dochodów, wydatków i salda
+    total_income, total_expense, balance = calculate_totals(all_transactions)
+    print(f"Dochód: {total_income}, Wydatki: {total_expense}, Saldo: {balance}")  # Debugging
+
+    # Grupowanie wydatków według kategorii
+    expenses_by_category = db.session.query(
+        Transaction.category, db.func.sum(Transaction.amount)
+    ).filter(
+        Transaction.user_id == current_user.id,  # Użytkownik
+        Transaction.type == "Expense"           # Tylko wydatki
+    ).group_by(Transaction.category).all()
+
+    # Tworzenie list kategorii i kwot
+    categories = [row[0] for row in expenses_by_category if row[0] is not None]
+    amounts = [row[1] for row in expenses_by_category if row[1] is not None]
+
+    print("Renderowanie szablonu home:")
+    print("Kategorie (categories):", categories)
+    print("Kwoty (amounts):", amounts)
+
+
+    # Renderowanie szablonu
     return render_template(
         'home.html',
         transactions=transactions.items,
@@ -101,6 +140,8 @@ def home():
         total_income=total_income,
         total_expense=total_expense,
         balance=balance,
+        categories=categories,
+        amounts=amounts
     )
 
 @app.route('/add', methods=['GET', 'POST'])
@@ -112,6 +153,7 @@ def add_transaction():
             title=form.title.data,
             amount=form.amount.data,
             type=form.type.data,
+            category=form.category.data if form.type.data == "Expense" else None,
             user_id=current_user.id
         )
         db.session.add(new_transaction)
@@ -132,6 +174,7 @@ def edit_transaction(transaction_id):
         transaction.title = form.title.data
         transaction.amount = form.amount.data
         transaction.type = form.type.data
+        transaction.category = form.category.data if form.type.data == "Expense" else None
         db.session.commit()
         flash("Transakcja została zaktualizowana!", "success")
         return redirect(url_for('home'))

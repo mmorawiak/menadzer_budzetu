@@ -6,6 +6,10 @@
     <title>Strona główna</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -42,14 +46,23 @@
             </div>
         </div>
 
-        <!-- Formularz filtrowania -->
-        <form method="POST" class="filter-form">
-            {{ form.hidden_tag() }}
-            <div class="filter-group">
-                {{ form.type(class="dropdown-select") }}
-                {{ form.submit(class="btn btn-primary filter-button") }}
-            </div>
-        </form>
+        <!-- Ukryte dane dla wykresu -->
+        <div id="chart-data"
+            data-categories='{{ categories | tojson | safe }}'
+            data-amounts='{{ amounts | tojson | safe }}'>
+        </div>
+
+        <!-- Wykres kołowy wydatków -->
+        <div class="chart-container" style="width: 30%; margin: 2rem auto;">
+            <canvas id="expenseChart"></canvas>
+        </div>
+
+        <!-- Przyciski filtrowania transakcji -->
+        <div class="filter-buttons">
+            <button class="filter-category" data-category="all">Wszystkie</button>
+            <button class="filter-category" data-category="Income">Dochód</button>
+            <button class="filter-category" data-category="Expense">Wydatek</button>
+        </div>
 
         <h3>Twoje transakcje:</h3>
         <table>
@@ -58,16 +71,18 @@
                     <th>Data</th>
                     <th>Tytuł</th>
                     <th>Typ</th>
+                    <th>Kategoria</th>
                     <th>Kwota</th>
                     <th>Akcje</th>
                 </tr>
             </thead>
             <tbody>
                 {% for transaction in transactions %}
-                <tr>
+                <tr class="transaction-row" data-type="{{ transaction.type }}">
                     <td>{{ transaction.date.strftime('%Y-%m-%d') }}</td>
                     <td>{{ transaction.title }}</td>
                     <td>{{ transaction.type }}</td>
+                    <td>{{ transaction.category if transaction.type == 'Expense' else '—' }}</td>
                     <td>{{ transaction.amount }} zł</td>
                     <td>
                         <a href="{{ url_for('edit_transaction', transaction_id=transaction.id) }}" class="btn btn-warning btn-sm">Edytuj</a>
@@ -80,5 +95,71 @@
             </tbody>
         </table>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                // Pobranie danych z ukrytego elementu HTML
+                const chartDataElement = document.getElementById("chart-data");
+                const categories = JSON.parse(chartDataElement.dataset.categories || "[]");
+                const amounts = JSON.parse(chartDataElement.dataset.amounts || "[]");
+
+                console.log("Categories:", categories);
+                console.log("Amounts:", amounts);
+
+                // Inicjalizacja wykresu kołowego
+                if (categories.length > 0 && amounts.length > 0) {
+                    const ctx = document.getElementById("expenseChart").getContext("2d");
+                    new Chart(ctx, {
+                        type: "pie",
+                        data: {
+                            labels: categories,
+                            datasets: [{
+                                label: "Wydatki według kategorii",
+                                data: amounts,
+                                backgroundColor: [
+                                    "rgba(255, 99, 132, 0.6)",
+                                    "rgba(54, 162, 235, 0.6)",
+                                    "rgba(255, 206, 86, 0.6)",
+                                    "rgba(75, 192, 192, 0.6)",
+                                    "rgba(153, 102, 255, 0.6)"
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                            }
+                        }
+                    });
+                } else {
+                    console.warn("Brak danych dla wykresu.");
+                }
+            } catch (error) {
+                console.error("Błąd w skrypcie wykresu:", error);
+            }
+
+            // Obsługa filtrowania transakcji
+            const filterButtons = document.querySelectorAll(".filter-category");
+            const transactionRows = document.querySelectorAll(".transaction-row");
+
+            filterButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    filterButtons.forEach(btn => btn.classList.remove("active"));
+                    button.classList.add("active");
+
+                    const filterType = button.dataset.category;
+                    transactionRows.forEach(row => {
+                        const rowType = row.getAttribute("data-type");
+                        row.style.display = (filterType === "all" || rowType === filterType) ? "table-row" : "none";
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 </html>

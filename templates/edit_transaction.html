@@ -24,28 +24,34 @@
                 {{ form.type.label(class="form-label") }}
                 {{ form.type(class="form-control", value=form.type.data) }}
             </div>
+            <div class="mb-3" id="category-field" style="display: none;">
+                {{ form.category.label(class="form-label") }}
+                {{ form.category(class="form-control", value=form.category.data) }}
+            </div>
             <div class="mb-3">
                 {{ form.submit(class="btn btn-primary") }}
             </div>
         </form>
         <a href="/" class="btn btn-secondary mt-3">Powrót</a>
     </div>
+
     <script>
-        document.getElementById("edit-transaction-form").addEventListener("submit", function(event) {
-            const title = document.getElementById("edit-transaction-form").querySelector('[name="title"]').value.trim();
-            const amount = parseFloat(document.getElementById("edit-transaction-form").querySelector('[name="amount"]').value);
+        document.addEventListener("DOMContentLoaded", function () {
+            const typeField = document.querySelector('[name="type"]');
+            const categoryField = document.getElementById("category-field");
 
-            if (!title || title.length === 0) {
-                alert("Tytuł transakcji jest wymagany!");
-                event.preventDefault();
-                return;
+            // Show category field if the transaction type is Expense
+            if (typeField.value === "Expense") {
+                categoryField.style.display = "block";
             }
 
-            if (isNaN(amount) || amount <= 0) {
-                alert("Kwota musi być liczbą większą od zera!");
-                event.preventDefault();
-                return;
-            }
+            typeField.addEventListener("change", function () {
+                if (typeField.value === "Expense") {
+                    categoryField.style.display = "block";
+                } else {
+                    categoryField.style.display = "none";
+                }
+            });
         });
     </script>
 </body>
